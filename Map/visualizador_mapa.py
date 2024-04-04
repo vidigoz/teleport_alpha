@@ -1,27 +1,26 @@
 import folium
-import datetime
+import datetime,requests
 from teleport_app.models import TeleportDatabase
-
 import json
 
 def cargar_marcadores_desde_db():
 
     map_osm = folium.Map(location=[32.663334, -115.467781], zoom_start=3)
-    # Conecta a la base de datos
-    #response = requests.get('http://localhost:8000/obtener_mensaje/')
+    
     ref_fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(ref_fecha)
- 
-    objetos_db = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
-    for datos in objetos_db:
+    #print(ref_fecha)
+    #objetos_db = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
+    data = requests.get('http://localhost:8000/obtener_mensaje/')
+    objetos_db = data.json()
 
-        userid = datos.userid
-        usuario = datos.usuario
-        message = datos.message
-        latitude = str(datos.latitude)
-        longitude = str(datos.longitude)
-        fechayhora = datos.fechayhora
-        dbid = datos.id
+    for datos in objetos_db['datos']:
+        userid = datos['userid']
+        usuario = datos['usuario']
+        message = datos['message']
+        latitude = datos['latitude'] 
+        longitude = datos['longitude']    
+        fechayhora = datos['fechayhora']
+        dbid = datos['id']
 
         enlace = 0
         hashtags = 0 
