@@ -16,10 +16,10 @@ def guardar_mensaje(request):
 # Agregar la fecha y hora actual
         fechayhora = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data['fechayhora'] = fechayhora
-        fecha_ = datetime.datetime.now().strftime("%Y-%m-%d")
-        hora_ = datetime.datetime.now().strftime("%H:%M:%S")
-
-
+        fecha_hora_cad = datetime.datetime.now() + datetime.timedelta(hours=1)
+        data['fecha_hora_cad'] = fecha_hora_cad.strftime("%Y-%m-%d %H:%M:%S")
+        print(fechayhora)
+        print(fecha_hora_cad)
         # Crear una instancia del modelo y guardarla en la base de datos
         TeleportDatabase.objects.create(
             userid=data.get('userid'),
@@ -27,25 +27,22 @@ def guardar_mensaje(request):
             message=data.get('message'),
             latitude=data.get('latitude'),
             longitude=data.get('longitude'),
-            fecha = fecha_,
-            hora = hora_,
-
-          
+            fechayhora = data.get('fechayhora'),
+            fecha_hora_cad = data.get('fecha_hora_cad'),   
         )
         # Devolver una respuesta JSON
         return JsonResponse({'status': 'Mensaje guardado correctamente.'})
     else:
         # Devolver un error si la solicitud no es POST
         return JsonResponse({'error': 'Método no permitido.'}, status=405)
-
-
 #------------------------------------------------------------
-
+    
 def obtener_mensaje(request):
     if request.method == 'GET':
-        # Obtener todos los mensajes de la base de datos
-        mensajes = TeleportDatabase.objects.filter(show=True)
-        
+        # Obtener todos los mensajes de la base de datos con filtro de fecha
+        ref_fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(ref_fecha)
+        mensajes = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
         # Crear una lista para almacenar los datos de los mensajes
         mensajes_data = []
         # Iterar sobre los mensajes y obtener los datos necesarios
@@ -57,10 +54,11 @@ def obtener_mensaje(request):
                 'message': mensaje.message,
                 'latitude': mensaje.latitude,
                 'longitude': mensaje.longitude,
-                'fecha': mensaje.fecha,
-                'hora': mensaje.hora,
+                'fechayhora': mensaje.fechayhora,
                 'show': mensaje.show,
+                
             }
+            print(mensaje.fechayhora)
             mensajes_data.append(mensaje_data)
         # Devolver una respuesta JSON con los datos de los mensajes
         return JsonResponse({'datos': mensajes_data})
