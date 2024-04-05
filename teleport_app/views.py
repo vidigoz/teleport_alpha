@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import TeleportDatabase
-import json
+import json, requests, geocoder
 import datetime
 from Map.visualizador_mapa import cargar_marcadores_desde_db
 
@@ -43,25 +43,26 @@ def obtener_mensaje(request):
         ref_fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(ref_fecha)
         mensajes = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
-        # Crear una lista para almacenar los datos de los mensajes
-        mensajes_data = []
-        # Iterar sobre los mensajes y obtener los datos necesarios
-        for mensaje in mensajes:
-            mensaje_data = {
-                'id': mensaje.id,
-                'userid': mensaje.userid,
-                'usuario': mensaje.usuario,
-                'message': mensaje.message,
-                'latitude': mensaje.latitude,
-                'longitude': mensaje.longitude,
-                'fechayhora': mensaje.fechayhora,
-                'show': mensaje.show,
-                
-            }
-            print(mensaje.fechayhora)
-            mensajes_data.append(mensaje_data)
-        # Devolver una respuesta JSON con los datos de los mensajes
-        return JsonResponse({'datos': mensajes_data})
+        if mensajes.exists():
+            mensajes_data = []
+            # Iterar sobre los mensajes y obtener los datos necesarios
+            for mensaje in mensajes:
+                mensaje_data = {
+                    'id': mensaje.id,
+                    'userid': mensaje.userid,
+                    'usuario': mensaje.usuario,
+                    'message': mensaje.message,
+                    'latitude': mensaje.latitude,
+                    'longitude': mensaje.longitude,
+                    'fechayhora': mensaje.fechayhora,
+                    'fecha_hora_cad': mensaje.fecha_hora_cad,
+                    'show': mensaje.show,
+                }
+                print(mensaje.fechayhora)
+                mensajes_data.append(mensaje_data)
+            return JsonResponse({'datos': mensajes_data})
+        else:
+            return JsonResponse({'error': 'No hay mensajes disponibles.'}, status=404)
     else:
         # Devolver un error si la solicitud no es GET
         return JsonResponse({'error': 'Método no permitido.'}, status=405)
@@ -71,10 +72,18 @@ def home(request):
    cargar_marcadores_desde_db()
    return render(request, 'map/index.html')
 
+#------------------------------------------------------------
 
-#def index():
-    # Programar la tarea para que se ejecute cada 60 segundos
-#    print("Entre a index")
-#    hide_old_messages()
-    # El resto de tu vista va aquí
+def home2(request):
+    data = requests.get('http://localhost:8000/obtener_mensaje/')
+    try:
+            data.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+        return render(request, 'map_openStreetMap/error.html', {'error_message': 'No hay mensajes disponibles.'})
+    g = geocoder.ip('me')
+    user_location = [g.lat, g.lng]
+    objetos_db = data.json()
+    return render(request, 'map_openStreetMap/map.html', {'datos': objetos_db['datos'], 'user_location': user_location})
+
     
