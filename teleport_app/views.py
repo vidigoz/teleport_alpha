@@ -87,6 +87,6 @@ def home2(request):
     user_location = [g.lat, g.lng]
     objetos_db = data.json()
     
-    return render(request, 'map_openStreetMap/map.html', {'datos': objetos_db['datos'], 'user_location': user_location})
+    return render(request, 'map_openStreetMap/index.html', {'datos': objetos_db['datos'], 'user_location': user_location})
 
     
