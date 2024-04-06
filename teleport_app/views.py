@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import TeleportDatabase
 import json, requests, geocoder
 import datetime
+from django.utils import timezone
 from Map.visualizador_mapa import cargar_marcadores_desde_db
 
 # Create your views here.
@@ -81,9 +82,11 @@ def home2(request):
     except requests.exceptions.HTTPError as err:
         print(f"HTTP error occurred: {err}")
         return render(request, 'map_openStreetMap/error.html', {'error_message': 'No hay mensajes disponibles.'})
+    
     g = geocoder.ip('me')
     user_location = [g.lat, g.lng]
     objetos_db = data.json()
+    
     return render(request, 'map_openStreetMap/map.html', {'datos': objetos_db['datos'], 'user_location': user_location})
 
     

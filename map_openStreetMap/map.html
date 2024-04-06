@@ -22,7 +22,7 @@
 
         {% for dato in datos %}
             var marker = L.marker([{{ dato.latitude }}, {{ dato.longitude }}]).addTo(map);
-            marker.bindPopup("@<b>{{ dato.usuario }}:</b>\n{{ dato.message }}");
+            marker.bindPopup("@<b>{{ dato.usuario }}:</b>\n{{ dato.message }}<br><span style='color:red;'>Caducidad: {{ dato.fecha_hora_cad }}</span>");
         {% endfor %}
     </script>
 </body>
