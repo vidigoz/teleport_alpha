@@ -30,13 +30,13 @@ def separar_mensaje(message):
     tipo = "general"
 
     # Busca los comandos en el texto y asigna el tipo correspondiente
-    if "--%e" in texto:
+    if "%%e" in texto:
         tipo = "evento"
-    elif "--%v" in texto:
+    elif "%%v" in texto:
         tipo = "venta"
-    elif "--%i" in texto:
+    elif "%%i" in texto:
         tipo = "informacion"
-    elif "--%a" in texto:
+    elif "%%a" in texto:
         tipo = "alerta"
 
 

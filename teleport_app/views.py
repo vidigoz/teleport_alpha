@@ -41,8 +41,8 @@ def obtener_mensaje(request):
     if request.method == 'GET':
         # Obtener todos los mensajes de la base de datos con filtro de fecha
         ref_fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        mensajes = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
-        #mensajes = TeleportDatabase.objects.all()
+        #mensajes = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
+        mensajes = TeleportDatabase.objects.all()
         if mensajes.exists():
             mensajes_data = []
             # Iterar sobre los mensajes y obtener los datos necesarios
@@ -65,14 +65,11 @@ def obtener_mensaje(request):
     else:
         # Devolver un error si la solicitud no es GET
         return JsonResponse({'error': 'Método no permitido.'}, status=405)
-    
-
 #------------------------------------------------------------
-
 def map(request):
     data = requests.get('http://localhost:8000/obtener_mensaje/')
     try:
-            data.raise_for_status()
+        data.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print(f"HTTP error occurred: {err}")
         return render(request, 'teleport_app/templates/map/error.html', {'error_message': 'No hay mensajes disponibles.'})
@@ -85,7 +82,6 @@ def map(request):
         objeto['enlace'] = enlace
         objeto['hashtags'] = hashtags
         objeto['tipo'] = tipo
-    #return render(request, 'map_openStreetMap/index.html', {'datos': objetos_db['datos'], 'user_location': user_location})
     return render(request, 'teleport_app/templates/map/index.html', {'datos': objetos_db['datos'], 'user_location': user_location})
 
     

@@ -38,7 +38,7 @@
             iconUrl: iconoUrl,
             iconSize: [32, 32],
             iconAnchor: [16, 32],
-            popupAnchor: [-3, -3]
+            popupAnchor: [-3, -33]
         });
         var marker = L.marker([{{ dato.latitude }}, {{ dato.longitude }}], {icon: iconoPersonalizado}).addTo(map);
         marker.enlace = "{{ dato.enlace }}";  // Guarda el enlace como una propiedad del marcador
