@@ -4,11 +4,11 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import TeleportDatabase
 import json, requests, geocoder
 import datetime
+from .funciones import separar_mensaje
 from django.utils import timezone
-from Map.visualizador_mapa import cargar_marcadores_desde_db
+
 
 # Create your views here.
-
 @csrf_exempt
 def guardar_mensaje(request):
     if request.method == 'POST':
@@ -37,29 +37,27 @@ def guardar_mensaje(request):
         # Devolver un error si la solicitud no es POST
         return JsonResponse({'error': 'Método no permitido.'}, status=405)
 #------------------------------------------------------------
-    
 def obtener_mensaje(request):
     if request.method == 'GET':
         # Obtener todos los mensajes de la base de datos con filtro de fecha
         ref_fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(ref_fecha)
         mensajes = TeleportDatabase.objects.filter(fecha_hora_cad__gt=ref_fecha)
+        #mensajes = TeleportDatabase.objects.all()
         if mensajes.exists():
             mensajes_data = []
             # Iterar sobre los mensajes y obtener los datos necesarios
             for mensaje in mensajes:
                 mensaje_data = {
                     'id': mensaje.id,
-                    'userid': mensaje.userid,
-                    'usuario': mensaje.usuario,
-                    'message': mensaje.message,
-                    'latitude': mensaje.latitude,
-                    'longitude': mensaje.longitude,
-                    'fechayhora': mensaje.fechayhora,
-                    'fecha_hora_cad': mensaje.fecha_hora_cad,
-                    'show': mensaje.show,
+                    'userid': mensaje.userid or "",
+                    'usuario': mensaje.usuario or "",
+                    'message': mensaje.message or "",
+                    'latitude': mensaje.latitude or "",
+                    'longitude': mensaje.longitude or "",
+                    'fechayhora': mensaje.fechayhora or "",
+                    'fecha_hora_cad': mensaje.fecha_hora_cad or "",
+                    'show': mensaje.show or "",
                 }
-                print(mensaje.fechayhora)
                 mensajes_data.append(mensaje_data)
             return JsonResponse({'datos': mensajes_data})
         else:
@@ -68,25 +66,26 @@ def obtener_mensaje(request):
         # Devolver un error si la solicitud no es GET
         return JsonResponse({'error': 'Método no permitido.'}, status=405)
     
-#------------------------------------------------------------
-def home(request):
-   cargar_marcadores_desde_db()
-   return render(request, 'map/index.html')
 
 #------------------------------------------------------------
 
-def home2(request):
+def map(request):
     data = requests.get('http://localhost:8000/obtener_mensaje/')
     try:
             data.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print(f"HTTP error occurred: {err}")
-        return render(request, 'map_openStreetMap/error.html', {'error_message': 'No hay mensajes disponibles.'})
-    
+        return render(request, 'teleport_app/templates/map/error.html', {'error_message': 'No hay mensajes disponibles.'})
     g = geocoder.ip('me')
     user_location = [g.lat, g.lng]
     objetos_db = data.json()
-    
-    return render(request, 'map_openStreetMap/index.html', {'datos': objetos_db['datos'], 'user_location': user_location})
+    for objeto in objetos_db['datos']:
+        mensaje, enlace, hashtags, tipo = separar_mensaje(objeto['message'])
+        objeto['mensaje'] = mensaje
+        objeto['enlace'] = enlace
+        objeto['hashtags'] = hashtags
+        objeto['tipo'] = tipo
+    #return render(request, 'map_openStreetMap/index.html', {'datos': objetos_db['datos'], 'user_location': user_location})
+    return render(request, 'teleport_app/templates/map/index.html', {'datos': objetos_db['datos'], 'user_location': user_location})
 
     

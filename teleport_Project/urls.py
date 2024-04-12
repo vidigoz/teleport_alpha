@@ -16,11 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from teleport_app import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('guardar_mensaje/', views.guardar_mensaje, name='guardar_mensaje'),
     path('obtener_mensaje/', views.obtener_mensaje, name='obtener_mensaje'),
-    path('home/', views.home, name='home'),
-    path('home2/', views.home2, name='home2')
-]
+    path('map/', views.map, name='map')
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

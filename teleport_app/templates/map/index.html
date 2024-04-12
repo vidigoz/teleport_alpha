@@ -1,93 +1,57 @@
 <!DOCTYPE html>
+{% load static %}
+
 <html>
 <head>
-    
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    
-        <script>
-            L_NO_TOUCH = false;
-            L_DISABLE_3D = false;
-        </script>
-    
-    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
-    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
-    
-            <meta name="viewport" content="width=device-width,
-                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-            <style>
-                #map_5b8e7ea4198d43e4683823e96931ff72 {
-                    position: relative;
-                    width: 100.0%;
-                    height: 100.0%;
-                    left: 0.0%;
-                    top: 0.0%;
-                }
-                .leaflet-container { font-size: 1rem; }
-            </style>
-        
+    <title>Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #mapid { height: 100vh; width: 100vw; }
+    </style>
 </head>
 <body>
-    
-    
-            <div class="folium-map" id="map_5b8e7ea4198d43e4683823e96931ff72" ></div>
-        
+    <div id="mapid"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('mapid').setView({{ user_location }}, 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(map);
+        var iconos = {
+        "general": "{% static 'images/general.png' %}",
+        "evento": "{% static 'images/evento.png' %}",
+        "venta": "{% static 'images/venta.png' %}",
+        "informacion": "{% static 'images/informacion.png' %}",
+        "alerta": "{% static 'images/alerta.png' %}"
+        };
+        {% for dato in datos %}
+            try {
+        var fechacaducidad = new Date("{{ dato.fecha_hora_cad }}");
+        var ahora = new Date();
+        var diferencia = fechacaducidad - ahora;
+        var minutosrestantes = Math.floor(diferencia / 1000 / 60);
+         // Obtiene el icono correspondiente al tipo
+        var iconoUrl = iconos["{{ dato.tipo }}"];
+        datotipo = "{{ dato.tipo }}";
+        var iconoPersonalizado = L.icon({
+            iconUrl: iconoUrl,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [-3, -3]
+        });
+        var marker = L.marker([{{ dato.latitude }}, {{ dato.longitude }}], {icon: iconoPersonalizado}).addTo(map);
+        marker.enlace = "{{ dato.enlace }}";  // Guarda el enlace como una propiedad del marcador
+        var usuario = "{{ dato.usuario }}" ? "{{ dato.usuario }}" : "{{ dato.id }}";
+        var mensaje = "{{ dato.mensaje }}" ? "{{ dato.mensaje }}" : " ";
+        var enlace = "{{ dato.enlace }}" ? "{{ dato.enlace }}" : " ";
+        var hashtags = "{{ dato.hashtags }}" ? "{{ dato.hashtags }}" : " ";
+        //marker.bindPopup("@<b>" + usuario + "</b><br>" + mensaje + "<br><a href='" + enlace + "'>" + enlace + "</a><br>" + hashtags + "<br><span style='color:red;'>Caducidad: " + minutosrestantes % 60 + " minutos</span>");
+        marker.bindPopup("@<b>" + usuario + "</b><br>" + mensaje + "<br><a href='" + enlace + "'>" + enlace + "</a><br>" + hashtags + "<br><span style='color:red;'>Caducidad: " + minutosrestantes % 60 + " minutos</span><br>" + datotipo);
+        } catch (error) {
+            console.error("Error al crear marcador para el dato: ", mensaje, error);
+        }
+        {% endfor %}
+    </script>
 </body>
-<script>
-    
-    
-            var map_5b8e7ea4198d43e4683823e96931ff72 = L.map(
-                "map_5b8e7ea4198d43e4683823e96931ff72",
-                {
-                    center: [32.5027, -117.0037],
-                    crs: L.CRS.EPSG3857,
-                    zoom: 10,
-                    zoomControl: true,
-                    preferCanvas: false,
-                }
-            );
-
-            
-
-        
-    
-            var tile_layer_913842028fd333f2f3deccdc90d6f03c = L.tileLayer(
-                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
-            );
-        
-    
-            tile_layer_913842028fd333f2f3deccdc90d6f03c.addTo(map_5b8e7ea4198d43e4683823e96931ff72);
-        
-    
-            var marker_c50cb2ab6eb8bb88fbbb27a4f50a625b = L.marker(
-                [32.568424, -116.605449],
-                {}
-            ).addTo(map_5b8e7ea4198d43e4683823e96931ff72);
-        
-    
-        var popup_ca77e60d6fada6faa79ad74478753eeb = L.popup({"maxWidth": 250});
-
-        
-            
-                var html_9dea56bc4ceb9eae226ac78d95361afd = $(`<div id="html_9dea56bc4ceb9eae226ac78d95361afd" style="width: 100.0%; height: 100.0%;">         <div style="position: relative; display: inline-block; min-width: 125px ;padding: 5px; background-color:          rgba(255, 255, 255, 0.8); border: 2px solid black; border-radius:          5px; font-family: Arial; font-size: 12pt;">         @<b>vidigoz:</b>          Testing 1           0           0           <i>IDDB:73</i>         </div>         </div>`)[0];
-                popup_ca77e60d6fada6faa79ad74478753eeb.setContent(html_9dea56bc4ceb9eae226ac78d95361afd);
-            
-        
-
-        marker_c50cb2ab6eb8bb88fbbb27a4f50a625b.bindPopup(popup_ca77e60d6fada6faa79ad74478753eeb)
-        ;
-
-        
-    
-</script>
 </html>
